@@ -44,8 +44,8 @@
 ## Phase 6: Polish, Tests & GitHub
 - [x] Vitest unit tests (3 passing)
 - [x] ZERNIO_API_KEY secret configured
-- [ ] PRODAMUS_SECRET_KEY (add after Prodamus account setup)
-- [ ] APP_PUBLIC_URL (add after Vercel deploy)
-- [ ] Register Telegram webhooks for existing bots after deploy
-- [ ] Export to GitHub via Management UI (Settings → GitHub → yaha341/botforge-saas)
-- [ ] Publish via Publish button in Management UI
+- [ ] POST-DEPLOY: Add PRODAMUS_SECRET_KEY in Settings → Secrets
+- [ ] POST-DEPLOY: Add APP_PUBLIC_URL in Settings → Secrets (e.g. https://botforge.manus.space)
+- [ ] POST-DEPLOY: Register Telegram webhooks for existing bots (cron auto-runs on startup)
+- [ ] POST-DEPLOY: Export to GitHub via ⋯ → GitHub → yaha341/botforge-saas
+- [ ] READY NOW: Publish via Publish button in Management UI (checkpoint c390f82b is ready)
