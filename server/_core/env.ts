@@ -7,4 +7,11 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  // Prodamus
+  prodamusShopUrl: process.env.PRODAMUS_SHOP_URL ?? "",
+  prodamusSecretKey: process.env.PRODAMUS_SECRET_KEY ?? "",
+  // Zernio (Instagram)
+  zernioApiKey: process.env.ZERNIO_API_KEY ?? "",
+  // Public URL
+  publicUrl: process.env.APP_PUBLIC_URL ?? "https://botforge-saas.vercel.app",
 };

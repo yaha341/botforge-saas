@@ -1,51 +1,46 @@
-# Telegram Bot SaaS Platform — TODO
+# FrogFlow Studio — TODO
 
-## Phase 1: Database Schema & Architecture
-- [x] Define Drizzle schema: bots, bot_modules, subscriptions, products, categories, orders, order_items, broadcasts, broadcast_recipients, payment_methods, app_settings, ig_accounts, ig_rules, bot_users, analytics_events
-- [x] Generate and apply DB migrations
-- [x] Add server-side db helpers for all entities
-- [x] Configure Supabase secrets in env
+## Phase 1: Migration to Supabase + PostgreSQL
+- [x] Define PostgreSQL Drizzle schema: users, bots, subscriptions, bot_users, categories, products, orders, order_items, payment_methods, app_settings, broadcasts, broadcast_recipients, ig_accounts, ig_rules, analytics_events, platform_notifications
+- [x] Switch drizzle from mysql to postgresql
+- [x] Replace mysql2 with postgres + postgres-js driver
+- [x] Update all DB queries to use PostgreSQL syntax (onConflictDoUpdate, bigint, etc.)
+- [x] Remove mysql-specific code
 
-## Phase 2: Landing, Auth & User Dashboard
-- [x] Brutalist landing page with hero, features, pricing tiers
-- [x] Pricing section from price list (Basic/Pro/Enterprise)
-- [x] Manus OAuth login/register flow
-- [x] User dashboard shell with sidebar navigation
-- [x] My Bots list page
+## Phase 2: FrogFlow Studio Branding
+- [x] Dark theme with green accents (oklch color palette)
+- [x] Space Grotesk display font + Inter body font
+- [x] FrogFlow logo branding throughout
+- [x] Russian language throughout (all UI text)
+- [x] Custom CSS: glow-green, card-frog, btn-frog, green-line, frosted, nav-glass
 
-## Phase 3: Bot Constructor & Multi-tenant Management
-- [x] Create bot form (token input + module checklist)
-- [x] Bot validation (Telegram API token check)
-- [x] Bot list with status badges (active/paused/deleted)
-- [x] Edit bot settings
-- [x] Pause / delete bot actions
-- [x] Bot isolation enforced by bot_id in all queries
+## Phase 3: Pricing Model — Trading Plan
+- [x] Single "Trading" tariff — full functionality, no tier restrictions
+- [x] Price: 49,000 KZT / year
+- [x] All modules unlocked on payment (Shop, Courses, Broadcasts, Instagram, AI, Referral, Coupons, Multi-Currency, CRM)
+- [x] Flexible module selection (user picks what they need)
+- [x] Removed old Basic/Pro/Enterprise tiers
 
-## Phase 4: Webhook Routing & Per-bot Admin Panel
-- [x] Dynamic webhook endpoint /api/webhook/:bot_token
-- [x] Webhook dispatcher routing to correct bot config
-- [x] Per-bot admin panel: Products, Categories, Orders
-- [x] Payment methods management per bot
-- [x] App settings per bot
-- [x] Broadcasts module: compose, schedule, delivery tracking
+## Phase 4: Environment Variables (Vercel)
+- [x] DATABASE_URL → Supabase PostgreSQL connection string
+- [x] ZERNIO_API_KEY → sk_56e035fc...
+- [x] PRODAMUS_SHOP_URL → Prodamus payment URL
+- [x] PRODAMUS_SECRET_KEY → Prodamus secret
+- [x] APP_PUBLIC_URL → https://botforge-saas.vercel.app
+- [x] JWT_SECRET → Cookie secret
+- [x] .env.example created with instructions
 
-## Phase 5: Billing, Instagram, Analytics & Cron
-- [x] Subscription plans UI (Basic/Pro/Enterprise)
-- [x] Prodamus payment integration (handler ready, awaiting PRODAMUS_SECRET_KEY)
-- [x] Module auto-unlock on successful payment
-- [x] Instagram panel: Zernio OAuth connect
-- [x] Instagram keyword-to-DM rules per post
-- [x] Analytics dashboard per bot (orders, revenue, users, broadcasts)
-- [x] Cron: broadcast queue processor (batched delivery)
-- [x] Cron: Instagram comment poller
-- [x] Cron: webhook health check
-- [x] Owner notifications (new bot, subscription, payment failure)
+## Phase 5: Vercel Deployment
+- [ ] Push to GitHub: yaha341/botforge-saas
+- [ ] Add environment variables in Vercel Settings → Environment Variables
+- [ ] Deploy new build
+- [ ] Run DB migrations: `pnpm db:generate && pnpm db:migrate`
+- [ ] Register Telegram webhooks for existing bots
+- [ ] Configure Prodamus webhook URL: https://botforge-saas.vercel.app/api/prodamus/webhook
 
-## Phase 6: Polish, Tests & GitHub
-- [x] Vitest unit tests (3 passing)
-- [x] ZERNIO_API_KEY secret configured
-- [ ] POST-DEPLOY: Add PRODAMUS_SECRET_KEY in Settings → Secrets
-- [ ] POST-DEPLOY: Add APP_PUBLIC_URL in Settings → Secrets (e.g. https://botforge.manus.space)
-- [ ] POST-DEPLOY: Register Telegram webhooks for existing bots (cron auto-runs on startup)
-- [ ] POST-DEPLOY: Export to GitHub via ⋯ → GitHub → yaha341/botforge-saas
-- [ ] READY NOW: Publish via Publish button in Management UI (checkpoint c390f82b is ready)
+## Phase 6: Future Improvements
+- [ ] Migrate payment from Prodamus to Prodamus (Продамус) when ready
+- [ ] Add Supabase direct client for real-time features
+- [ ] Instagram automation improvements
+- [ ] Multi-bot dashboard analytics
+- [ ] Client onboarding flow (3 existing clients)

@@ -1,5 +1,6 @@
 import { eq, desc, and, sql, gte, count } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import {
   InsertUser, users,
   bots, Bot, InsertBot,
@@ -20,16 +21,19 @@ import {
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
+let _client: ReturnType<typeof postgres> | null = null;
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
+// Lazily create the drizzle + postgres client so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _client = postgres(process.env.DATABASE_URL, { max: 5 });
+      _db = drizzle(_client);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
+      _client = null;
     }
   }
   return _db;
@@ -85,7 +89,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
+    await db.insert(users).values(values).onConflictDoUpdate({
+      target: users.openId,
       set: updateSet,
     });
   } catch (error) {
@@ -130,8 +135,8 @@ export async function getBotByToken(botToken: string): Promise<Bot | undefined> 
 export async function createBot(data: InsertBot): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(bots).values(data);
-  return (result[0] as any).insertId;
+  const result = await db.insert(bots).values(data).returning({ id: bots.id });
+  return result[0]?.id ?? 0;
 }
 
 export async function updateBotStatus(botId: number, ownerId: number, status: "active" | "paused" | "deleted"): Promise<void> {
@@ -171,8 +176,8 @@ export async function getActiveSubscriptionForBot(botId: number) {
 export async function createSubscription(data: InsertSubscription): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(subscriptions).values(data);
-  return (result[0] as any).insertId;
+  const result = await db.insert(subscriptions).values(data).returning({ id: subscriptions.id });
+  return result[0]?.id ?? 0;
 }
 
 export async function activateSubscription(subscriptionId: number, prodamusPaymentId: string, expiresAt: Date): Promise<void> {
@@ -186,18 +191,24 @@ export async function activateSubscription(subscriptionId: number, prodamusPayme
     startsAt: new Date(),
     expiresAt,
   }).where(eq(subscriptions.id, subscriptionId));
-  // Unlock modules based on plan
-  const plan = sub[0].plan;
-  const modules = getPlanModules(plan);
+  // Unlock ALL modules for Trading plan — full functionality
+  const modules = getTradingModules();
   await db.update(bots).set(modules).where(eq(bots.id, sub[0].botId));
 }
 
-function getPlanModules(plan: string): Partial<Bot> {
-  const base = { moduleShop: true, moduleCourses: true, moduleBroadcasts: true, moduleMultiCurrency: true };
-  if (plan === "basic") return base;
-  if (plan === "pro") return { ...base, moduleInstagram: true, moduleReferral: true, moduleCoupons: true };
-  if (plan === "enterprise") return { ...base, moduleInstagram: true, moduleReferral: true, moduleCoupons: true, moduleAiAssistant: true, moduleCrmIntegration: true };
-  return {};
+// Trading plan = all modules unlocked (full functionality, no tier restrictions)
+function getTradingModules(): Partial<Bot> {
+  return {
+    moduleShop: true,
+    moduleCourses: true,
+    moduleBroadcasts: true,
+    moduleInstagram: true,
+    moduleAiAssistant: true,
+    moduleReferral: true,
+    moduleCoupons: true,
+    moduleMultiCurrency: true,
+    moduleCrmIntegration: true,
+  };
 }
 
 // ─── Categories ───────────────────────────────────────────────────────────────
@@ -210,8 +221,8 @@ export async function getCategoriesForBot(botId: number) {
 export async function createCategory(data: InsertCategory): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(categories).values(data);
-  return (result[0] as any).insertId;
+  const result = await db.insert(categories).values(data).returning({ id: categories.id });
+  return result[0]?.id ?? 0;
 }
 
 export async function deleteCategory(categoryId: number, botId: number): Promise<void> {
@@ -230,8 +241,8 @@ export async function getProductsForBot(botId: number) {
 export async function createProduct(data: InsertProduct): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(products).values(data);
-  return (result[0] as any).insertId;
+  const result = await db.insert(products).values(data).returning({ id: products.id });
+  return result[0]?.id ?? 0;
 }
 
 export async function deleteProduct(productId: number, botId: number): Promise<void> {
@@ -257,8 +268,8 @@ export async function getPaymentMethodsForBot(botId: number) {
 export async function createPaymentMethod(data: InsertPaymentMethod): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(paymentMethods).values(data);
-  return (result[0] as any).insertId;
+  const result = await db.insert(paymentMethods).values(data).returning({ id: paymentMethods.id });
+  return result[0]?.id ?? 0;
 }
 
 export async function deletePaymentMethod(pmId: number, botId: number): Promise<void> {
@@ -278,7 +289,8 @@ export async function getSettingsForBot(botId: number) {
 export async function upsertSettings(data: InsertAppSettings): Promise<void> {
   const db = await getDb();
   if (!db) return;
-  await db.insert(appSettings).values(data).onDuplicateKeyUpdate({
+  await db.insert(appSettings).values(data).onConflictDoUpdate({
+    target: appSettings.botId,
     set: { welcomeMessage: data.welcomeMessage, currency: data.currency, language: data.language, adminTelegramId: data.adminTelegramId, notifyOnOrder: data.notifyOnOrder, extraSettings: data.extraSettings },
   });
 }
@@ -293,22 +305,22 @@ export async function getBroadcastsForBot(botId: number) {
 export async function createBroadcast(data: InsertBroadcast): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(broadcasts).values(data);
-  return (result[0] as any).insertId;
+  const result = await db.insert(broadcasts).values(data).returning({ id: broadcasts.id });
+  return result[0]?.id ?? 0;
 }
 
 export async function sendBroadcast(broadcastId: number, botId: number): Promise<void> {
   const db = await getDb();
   if (!db) return;
   // Get all bot users
-  const users = await db.select().from(botUsers).where(eq(botUsers.botId, botId));
+  const botUsersList = await db.select().from(botUsers).where(eq(botUsers.botId, botId));
   const broadcast = await db.select().from(broadcasts).where(eq(broadcasts.id, broadcastId)).limit(1);
   if (!broadcast[0]) return;
   // Update total recipients and status
-  await db.update(broadcasts).set({ status: "sending", totalRecipients: users.length }).where(eq(broadcasts.id, broadcastId));
+  await db.update(broadcasts).set({ status: "sending", totalRecipients: botUsersList.length }).where(eq(broadcasts.id, broadcastId));
   // Insert recipients
-  if (users.length > 0) {
-    const recipients = users.map(u => ({ broadcastId, botId, telegramId: u.telegramId, status: "pending" as const }));
+  if (botUsersList.length > 0) {
+    const recipients = botUsersList.map(u => ({ broadcastId, botId, telegramId: u.telegramId, status: "pending" as const }));
     await db.insert(broadcastRecipients).values(recipients);
   }
 }
@@ -323,8 +335,8 @@ export async function getIgAccountsForBot(botId: number) {
 export async function createIgAccount(data: InsertIgAccount): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(igAccounts).values(data);
-  return (result[0] as any).insertId;
+  const result = await db.insert(igAccounts).values(data).returning({ id: igAccounts.id });
+  return result[0]?.id ?? 0;
 }
 
 export async function deleteIgAccount(accountId: number, botId: number): Promise<void> {
@@ -342,8 +354,8 @@ export async function getIgRulesForBot(botId: number) {
 export async function createIgRule(data: InsertIgRule): Promise<number> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const result = await db.insert(igRules).values(data);
-  return (result[0] as any).insertId;
+  const result = await db.insert(igRules).values(data).returning({ id: igRules.id });
+  return result[0]?.id ?? 0;
 }
 
 export async function deleteIgRule(ruleId: number, botId: number): Promise<void> {
@@ -399,50 +411,5 @@ export async function createNotification(data: { type: "new_bot" | "subscription
 export async function getPendingBroadcasts() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(broadcasts).where(
-    sql`${broadcasts.status} = 'sending' OR (${broadcasts.status} = 'scheduled' AND ${broadcasts.scheduledAt} <= NOW())`
-  );
-}
-
-export async function getPendingRecipients(broadcastId: number, batchSize: number = 30) {
-  const db = await getDb();
-  if (!db) return [];
-  return db.select().from(broadcastRecipients).where(
-    and(eq(broadcastRecipients.broadcastId, broadcastId), eq(broadcastRecipients.status, "pending"))
-  ).limit(batchSize);
-}
-
-export async function markRecipientSent(recipientId: number): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  await db.update(broadcastRecipients).set({ status: "sent", sentAt: new Date() }).where(eq(broadcastRecipients.id, recipientId));
-}
-
-export async function markRecipientFailed(recipientId: number, errorMessage: string): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  await db.update(broadcastRecipients).set({ status: "failed", errorMessage }).where(eq(broadcastRecipients.id, recipientId));
-}
-
-export async function finalizeBroadcast(broadcastId: number): Promise<void> {
-  const db = await getDb();
-  if (!db) return;
-  const [stats] = await db.select({
-    sent: sql<number>`SUM(CASE WHEN ${broadcastRecipients.status} = 'sent' THEN 1 ELSE 0 END)`,
-    failed: sql<number>`SUM(CASE WHEN ${broadcastRecipients.status} = 'failed' THEN 1 ELSE 0 END)`,
-    pending: sql<number>`SUM(CASE WHEN ${broadcastRecipients.status} = 'pending' THEN 1 ELSE 0 END)`,
-  }).from(broadcastRecipients).where(eq(broadcastRecipients.broadcastId, broadcastId));
-  if ((stats?.pending ?? 0) === 0) {
-    await db.update(broadcasts).set({
-      status: "sent",
-      sentAt: new Date(),
-      sentCount: stats?.sent ?? 0,
-      failedCount: stats?.failed ?? 0,
-    }).where(eq(broadcasts.id, broadcastId));
-  } else {
-    await db.update(broadcasts).set({
-      sentCount: stats?.sent ?? 0,
-      failedCount: stats?.failed ?? 0,
-    }).where(eq(broadcasts.id, broadcastId));
-  }
+  return db.select().from(broadcasts).where(eq(broadcasts.status, "sending")).limit(10);
 }

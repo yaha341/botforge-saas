@@ -16,23 +16,23 @@ export default function Notifications() {
     <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto px-6 py-12">
         <div className="mb-8">
-          <p className="text-muted-foreground font-condensed uppercase tracking-widest text-sm mb-1">Platform</p>
-          <h1 className="text-5xl font-condensed font-black uppercase text-foreground">Notifications</h1>
-          <span className="red-line mt-4 block" />
+          <p className="text-accent text-xs uppercase tracking-[0.2em] mb-2">Платформа</p>
+          <h1 className="font-display font-700 text-4xl text-foreground">Уведомления</h1>
+          <span className="green-line mt-4 block" />
         </div>
         <div className="space-y-3">
           {(notifications ?? []).length === 0 ? (
-            <div className="border border-border p-8 text-center text-muted-foreground font-condensed uppercase">No notifications</div>
+            <div className="card-frog p-8 text-center text-muted-foreground">Нет уведомлений</div>
           ) : (notifications ?? []).map((n: any) => (
-            <div key={n.id} className={`border p-4 flex items-start gap-4 ${n.isRead ? "border-border opacity-60" : "border-foreground"}`}>
+            <div key={n.id} className={`card-frog p-4 flex items-start gap-4 ${n.isRead ? "opacity-60" : "card-frog-active"}`}>
               <span className="text-2xl">{NOTIF_ICONS[n.type] ?? "📢"}</span>
               <div className="flex-1">
-                <div className="font-condensed font-black uppercase text-foreground text-sm">{n.title}</div>
-                <div className="text-muted-foreground text-sm font-condensed mt-1">{n.body}</div>
-                <div className="text-xs text-muted-foreground font-condensed uppercase mt-2">{new Date(n.createdAt).toLocaleString()}</div>
+                <div className="font-display font-600 text-foreground text-sm">{n.title}</div>
+                <div className="text-muted-foreground text-sm mt-1">{n.body}</div>
+                <div className="text-xs text-muted-foreground mt-2">{new Date(n.createdAt).toLocaleString("ru")}</div>
               </div>
               {!n.isRead && (
-                <Button size="sm" className="btn-brutal" onClick={() => markRead.mutate({ id: n.id })}>Mark Read</Button>
+                <Button size="sm" className="btn-frog btn-frog-ghost text-xs" onClick={() => markRead.mutate({ id: n.id })}>Прочитано</Button>
               )}
             </div>
           ))}

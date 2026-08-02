@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import crypto from "crypto";
 import { getDb } from "./db";
 import { subscriptions, bots } from "../drizzle/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { createNotification } from "./db";
 
 function verifyProdamusSign(params: Record<string, string>, secretKey: string): boolean {
@@ -12,14 +12,6 @@ function verifyProdamusSign(params: Record<string, string>, secretKey: string): 
   const signString = Object.entries(sortedParams).map(([k, v]) => `${k}=${v}`).join("&");
   const expected = crypto.createHmac("sha256", secretKey).update(signString).digest("hex");
   return expected === sign;
-}
-
-function getPlanModules(plan: string) {
-  const base = { moduleShop: true, moduleCourses: true, moduleBroadcasts: true, moduleMultiCurrency: true };
-  if (plan === "basic") return base;
-  if (plan === "pro") return { ...base, moduleInstagram: true, moduleReferral: true, moduleCoupons: true };
-  if (plan === "enterprise") return { ...base, moduleInstagram: true, moduleReferral: true, moduleCoupons: true, moduleAiAssistant: true, moduleCrmIntegration: true };
-  return {};
 }
 
 export function registerProdamusWebhook(app: Express) {
@@ -35,7 +27,7 @@ export function registerProdamusWebhook(app: Express) {
         return;
       }
 
-      const { order_id, payment_status, payment_id, customer_extra } = params;
+      const { order_id, payment_status, payment_id } = params;
 
       if (payment_status !== "success") {
         res.json({ ok: true });
@@ -65,19 +57,28 @@ export function registerProdamusWebhook(app: Express) {
         expiresAt,
       }).where(eq(subscriptions.id, sub.id));
 
-      // Unlock modules based on plan
-      const modules = getPlanModules(sub.plan);
-      await db.update(bots).set({ ...modules }).where(eq(bots.id, sub.botId));
+      // Unlock ALL modules — Trading plan = full functionality
+      await db.update(bots).set({
+        moduleShop: true,
+        moduleCourses: true,
+        moduleBroadcasts: true,
+        moduleInstagram: true,
+        moduleAiAssistant: true,
+        moduleReferral: true,
+        moduleCoupons: true,
+        moduleMultiCurrency: true,
+        moduleCrmIntegration: true,
+      }).where(eq(bots.id, sub.botId));
 
       // Notify owner
       await createNotification({
         type: "subscription_purchased",
-        title: "Payment Received",
-        body: `Subscription ${sub.plan.toUpperCase()} activated for bot #${sub.botId}. Payment: ${payment_id}`,
+        title: "Оплата получена",
+        body: `Trading план активирован для бота #${sub.botId}. Оплата: ${payment_id}`,
         meta: { subscriptionId: sub.id, botId: sub.botId, plan: sub.plan },
       });
 
-      console.log(`[Prodamus] Subscription #${sub.id} activated for bot #${sub.botId}`);
+      console.log(`[Prodamus] Trading subscription #${sub.id} activated for bot #${sub.botId}`);
       res.json({ ok: true });
     } catch (err) {
       console.error("[Prodamus] Webhook error:", err);

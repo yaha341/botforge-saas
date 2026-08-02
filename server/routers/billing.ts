@@ -4,9 +4,7 @@ import { getBotById, getSubscriptionsForUser, createSubscription, createNotifica
 import crypto from "crypto";
 
 const PLAN_PRICES: Record<string, number> = {
-  basic: 35000,
-  pro: 65000,
-  enterprise: 120000,
+  trading: 49000,
 };
 
 export const billingRouter = router({
@@ -16,10 +14,10 @@ export const billingRouter = router({
 
   createCheckout: protectedProcedure.input(z.object({
     botId: z.number(),
-    plan: z.enum(["basic", "pro", "enterprise"]),
+    plan: z.enum(["trading"]),
   })).mutation(async ({ ctx, input }) => {
     const bot = await getBotById(input.botId, ctx.user.id);
-    if (!bot) throw new Error("Bot not found");
+    if (!bot) throw new Error("Бот не найден");
 
     const price = PLAN_PRICES[input.plan];
     const orderId = `sub_${ctx.user.id}_${input.botId}_${Date.now()}`;
@@ -40,14 +38,13 @@ export const billingRouter = router({
     const prodamusSecretKey = process.env.PRODAMUS_SECRET_KEY ?? "";
 
     if (!prodamusShopUrl) {
-      // Return demo URL if Prodamus not configured
-      return { paymentUrl: null, subscriptionId: subId, message: "Prodamus not configured. Contact support." };
+      return { paymentUrl: null, subscriptionId: subId, message: "Prodamus не настроен. Обратитесь в поддержку." };
     }
 
     const params: Record<string, string> = {
       order_id: orderId,
       customer_extra: `sub_${subId}`,
-      products: JSON.stringify([{ name: `${input.plan.toUpperCase()} Plan — Annual`, price, quantity: 1 }]),
+      products: JSON.stringify([{ name: `Trading Plan — Annual`, price, quantity: 1 }]),
       do: "link",
     };
 
@@ -72,4 +69,3 @@ export const billingRouter = router({
     return { success: true };
   }),
 });
-

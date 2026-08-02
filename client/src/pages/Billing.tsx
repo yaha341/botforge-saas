@@ -4,15 +4,11 @@ import { startLogin } from "@/const";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
-
-const PLANS = [
-  { id: "basic", name: "Basic", price: "35 000 ₸", period: "/год", features: ["Shop", "Courses", "Broadcasts", "Multi-Currency"], color: "border-border" },
-  { id: "pro", name: "Pro", price: "65 000 ₸", period: "/год", features: ["All Basic", "Instagram", "Referral", "Coupons"], color: "border-accent" },
-  { id: "enterprise", name: "Enterprise", price: "120 000 ₸", period: "/год", features: ["All Pro", "AI Assistant", "CRM Integration", "Priority Support"], color: "border-foreground" },
-];
+import { useLocation } from "wouter";
 
 export default function Billing() {
   const { isAuthenticated, loading } = useAuth();
+  const [, navigate] = useLocation();
   const { data: bots } = trpc.bots.list.useQuery(undefined, { enabled: isAuthenticated });
   const { data: subscriptions } = trpc.billing.listSubscriptions.useQuery(undefined, { enabled: isAuthenticated });
   const createCheckout = trpc.billing.createCheckout.useMutation({
@@ -23,66 +19,86 @@ export default function Billing() {
 
   if (loading || !isAuthenticated) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      {!loading && <Button className="btn-brutal" onClick={() => startLogin()}>Sign In</Button>}
+      {!loading && <Button className="btn-frog" onClick={() => startLogin()}>Войти</Button>}
     </div>
   );
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="mb-8">
-          <p className="text-muted-foreground font-condensed uppercase tracking-widest text-sm mb-1">Platform</p>
-          <h1 className="text-5xl font-condensed font-black uppercase text-foreground">Billing</h1>
-          <span className="red-line mt-4 block" />
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        {/* Header */}
+        <div className="mb-10">
+          <p className="text-accent text-xs uppercase tracking-[0.2em] mb-2">Оплата</p>
+          <h1 className="font-display font-700 text-4xl text-foreground">Подписка</h1>
+          <span className="green-line mt-4 block" />
         </div>
 
         {/* Bot selector */}
-        <div className="border border-border p-6 mb-10">
-          <h2 className="text-xl font-condensed font-black uppercase text-foreground mb-3">Select Bot</h2>
-          <select value={selectedBot} onChange={e => setSelectedBot(e.target.value)} className="bg-secondary border border-border text-foreground px-4 py-2 font-condensed uppercase text-sm w-full md:w-auto">
-            <option value="">Choose a bot...</option>
+        <div className="card-frog p-6 mb-8">
+          <h2 className="font-display font-600 text-lg text-foreground mb-3">Выберите бота</h2>
+          <select value={selectedBot} onChange={e => setSelectedBot(e.target.value)} className="w-full md:w-auto bg-secondary border border-border text-foreground px-4 py-3 rounded-lg font-sans text-sm focus:border-accent focus:outline-none transition-colors">
+            <option value="">Выберите бота...</option>
             {(bots ?? []).map((b: any) => <option key={b.id} value={b.id}>{b.botName}</option>)}
           </select>
         </div>
 
-        {/* Plans */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          {PLANS.map(plan => (
-            <div key={plan.id} className={`border p-6 flex flex-col ${plan.color}`}>
-              <div className="text-3xl font-condensed font-black uppercase text-foreground mb-1">{plan.name}</div>
-              <div className="text-2xl font-condensed font-black text-accent mb-4">{plan.price}<span className="text-sm text-muted-foreground">{plan.period}</span></div>
-              <ul className="space-y-2 mb-6 flex-1">
-                {plan.features.map(f => <li key={f} className="text-sm font-condensed uppercase text-muted-foreground flex items-center gap-2"><span className="text-accent">✓</span>{f}</li>)}
-              </ul>
-              <Button className="btn-brutal-red w-full" disabled={!selectedBot || createCheckout.isPending}
-                onClick={() => { if (!selectedBot) { toast.error("Select a bot first"); return; } createCheckout.mutate({ botId: Number(selectedBot), plan: plan.id as any }); }}>
-                Subscribe
-              </Button>
+        {/* Trading Plan */}
+        <div className="card-frog-active p-8 glow-green mb-10">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div>
+              <span className="inline-block text-xs uppercase tracking-[0.2em] text-accent bg-accent/10 px-3 py-1 rounded-full mb-3">
+                Trading Plan
+              </span>
+              <h3 className="font-display font-700 text-2xl text-foreground mb-1">Полная функциональность</h3>
+              <p className="text-muted-foreground text-sm mb-4">Все модули включены. Гибкий выбор конфигурации.</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-accent text-3xl font-display font-700">49 000</span>
+                <span className="text-muted-foreground">₸/год</span>
+              </div>
             </div>
-          ))}
+            <Button className="btn-frog btn-frog-filled px-8 py-3 glow-green" disabled={!selectedBot || createCheckout.isPending}
+              onClick={() => { if (!selectedBot) { toast.error("Выберите бота"); return; } createCheckout.mutate({ botId: Number(selectedBot), plan: "trading" }); }}>
+              {createCheckout.isPending ? "Обработка..." : "Оплатить"}
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-6 pt-6 border-t border-border">
+            {["Магазин", "Курсы", "Рассылки", "Instagram", "AI Ассистент", "Рефералы", "Купоны", "Мультивалюта", "CRM"].map(m => (
+              <div key={m} className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="text-accent">✓</span> {m}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Active subscriptions */}
         {(subscriptions ?? []).length > 0 && (
           <div>
-            <h2 className="text-2xl font-condensed font-black uppercase text-foreground mb-4">Active Subscriptions</h2>
-            <span className="red-line mb-6 block" />
+            <h2 className="font-display font-600 text-xl text-foreground mb-4">Активные подписки</h2>
+            <span className="green-line mb-6 block" />
             <div className="space-y-3">
               {(subscriptions ?? []).map((sub: any) => (
-                <div key={sub.id} className="border border-border p-4 flex items-center justify-between">
+                <div key={sub.id} className="card-frog p-4 flex items-center justify-between">
                   <div>
-                    <span className="font-condensed font-black uppercase text-foreground mr-3">{sub.plan?.toUpperCase()}</span>
-                    <span className="text-muted-foreground text-sm font-condensed">Bot #{sub.botId}</span>
+                    <span className="font-display font-600 text-accent mr-3">Trading</span>
+                    <span className="text-muted-foreground text-sm">Бот #{sub.botId}</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-xs font-condensed uppercase text-muted-foreground">Expires: {sub.expiresAt ? new Date(sub.expiresAt).toLocaleDateString() : "—"}</span>
-                    <span className={`text-xs font-condensed uppercase px-2 py-0.5 border ${sub.status === "active" ? "border-accent text-accent" : "border-border text-muted-foreground"}`}>{sub.status}</span>
+                    <span className="text-xs text-muted-foreground">До: {sub.expiresAt ? new Date(sub.expiresAt).toLocaleDateString("ru") : "—"}</span>
+                    <span className={`text-xs px-3 py-1 rounded-full border ${sub.status === "active" ? "border-accent text-accent bg-accent/10" : "border-border text-muted-foreground"}`}>{sub.status}</span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* Back */}
+        <div className="mt-12 text-center">
+          <button className="text-muted-foreground text-sm hover:text-accent transition-colors flex items-center gap-2 mx-auto" onClick={() => navigate("/dashboard")}>
+            ← Назад в дашборд
+          </button>
+        </div>
       </div>
     </div>
   );

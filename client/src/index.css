@@ -4,35 +4,36 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: oklch(0.08 0 0);
-  --color-foreground: oklch(0.98 0 0);
-  --color-card: oklch(0.11 0 0);
-  --color-card-foreground: oklch(0.98 0 0);
-  --color-popover: oklch(0.11 0 0);
-  --color-popover-foreground: oklch(0.98 0 0);
-  --color-primary: oklch(0.98 0 0);
-  --color-primary-foreground: oklch(0.08 0 0);
-  --color-secondary: oklch(0.15 0 0);
-  --color-secondary-foreground: oklch(0.98 0 0);
-  --color-muted: oklch(0.15 0 0);
-  --color-muted-foreground: oklch(0.6 0 0);
-  --color-accent: oklch(0.55 0.22 27);
-  --color-accent-foreground: oklch(0.98 0 0);
+  --color-background: oklch(0.06 0.01 150);
+  --color-foreground: oklch(0.97 0 0);
+  --color-card: oklch(0.10 0.015 150);
+  --color-card-foreground: oklch(0.97 0 0);
+  --color-popover: oklch(0.10 0.015 150);
+  --color-popover-foreground: oklch(0.97 0 0);
+  --color-primary: oklch(0.75 0.18 145);
+  --color-primary-foreground: oklch(0.06 0.01 150);
+  --color-secondary: oklch(0.14 0.015 150);
+  --color-secondary-foreground: oklch(0.97 0 0);
+  --color-muted: oklch(0.18 0.015 150);
+  --color-muted-foreground: oklch(0.55 0.04 150);
+  --color-accent: oklch(0.75 0.18 145);
+  --color-accent-foreground: oklch(0.06 0.01 150);
   --color-destructive: oklch(0.55 0.22 27);
-  --color-destructive-foreground: oklch(0.98 0 0);
-  --color-border: oklch(0.22 0 0);
-  --color-input: oklch(0.15 0 0);
-  --color-ring: oklch(0.98 0 0);
-  --color-red: oklch(0.55 0.22 27);
+  --color-destructive-foreground: oklch(0.97 0 0);
+  --color-border: oklch(0.18 0.02 150);
+  --color-input: oklch(0.14 0.015 150);
+  --color-ring: oklch(0.75 0.18 145);
+  --color-green: oklch(0.75 0.18 145);
+  --color-green-dark: oklch(0.55 0.15 145);
 
-  --font-sans: "Barlow", system-ui, sans-serif;
-  --font-condensed: "Barlow Condensed", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
 
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius: 0px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius: 10px;
 }
 
 @layer base {
@@ -44,60 +45,107 @@
     font-feature-settings: "kern" 1;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-condensed);
-    font-weight: 900;
-    letter-spacing: -0.01em;
-    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 }
 
-/* Brutalist divider */
-.red-line {
+/* FrogFlow divider */
+.green-line {
   display: block;
   width: 100%;
-  height: 3px;
-  background-color: oklch(0.55 0.22 27);
+  height: 2px;
+  background: linear-gradient(90deg, transparent, oklch(0.75 0.18 145), transparent);
 }
 
-/* Brutalist button */
-.btn-brutal {
-  font-family: var(--font-condensed);
-  font-weight: 800;
-  font-size: 1.1rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border: 2px solid oklch(0.98 0 0);
+/* FrogFlow glow effect */
+.glow-green {
+  box-shadow: 0 0 20px oklch(0.75 0.18 145 / 0.15), 0 0 60px oklch(0.75 0.18 145 / 0.05);
+}
+
+.glow-green-strong {
+  box-shadow: 0 0 30px oklch(0.75 0.18 145 / 0.25), 0 0 80px oklch(0.75 0.18 145 / 0.1);
+}
+
+/* FrogFlow button */
+.btn-frog {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  border: 1px solid oklch(0.75 0.18 145);
   padding: 0.65rem 2rem;
   background: transparent;
-  color: oklch(0.98 0 0);
+  color: oklch(0.75 0.18 145);
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
 }
-.btn-brutal:hover {
-  background: oklch(0.98 0 0);
-  color: oklch(0.08 0 0);
+.btn-frog:hover {
+  background: oklch(0.75 0.18 145);
+  color: oklch(0.06 0.01 150);
+  box-shadow: 0 0 20px oklch(0.75 0.18 145 / 0.3);
 }
-.btn-brutal-red {
-  border-color: oklch(0.55 0.22 27);
-  color: oklch(0.55 0.22 27);
+.btn-frog-filled {
+  background: oklch(0.75 0.18 145);
+  color: oklch(0.06 0.01 150);
+  border-color: oklch(0.75 0.18 145);
 }
-.btn-brutal-red:hover {
-  background: oklch(0.55 0.22 27);
-  color: oklch(0.98 0 0);
+.btn-frog-filled:hover {
+  background: oklch(0.80 0.18 145);
+  box-shadow: 0 0 30px oklch(0.75 0.18 145 / 0.4);
 }
-.btn-brutal-filled {
-  background: oklch(0.98 0 0);
-  color: oklch(0.08 0 0);
+.btn-frog-ghost {
+  border-color: oklch(0.25 0.02 150);
+  color: oklch(0.6 0.04 150);
 }
-.btn-brutal-filled:hover {
-  background: oklch(0.55 0.22 27);
-  color: oklch(0.98 0 0);
-  border-color: oklch(0.55 0.22 27);
+.btn-frog-ghost:hover {
+  border-color: oklch(0.75 0.18 145);
+  color: oklch(0.75 0.18 145);
+  background: oklch(0.75 0.18 145 / 0.05);
+}
+
+/* FrogFlow card */
+.card-frog {
+  background: oklch(0.10 0.015 150);
+  border: 1px solid oklch(0.18 0.02 150);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+}
+.card-frog:hover {
+  border-color: oklch(0.75 0.18 145 / 0.3);
+  box-shadow: 0 0 30px oklch(0.75 0.18 145 / 0.08);
+}
+.card-frog-active {
+  border-color: oklch(0.75 0.18 145 / 0.5);
+  box-shadow: 0 0 30px oklch(0.75 0.18 145 / 0.12);
+}
+
+/* FrogFlow nav glass */
+.nav-glass {
+  background: oklch(0.06 0.01 150 / 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid oklch(0.18 0.02 150);
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: oklch(0.08 0 0); }
-::-webkit-scrollbar-thumb { background: oklch(0.3 0 0); }
-::-webkit-scrollbar-thumb:hover { background: oklch(0.55 0.22 27); }
+::-webkit-scrollbar-track { background: oklch(0.06 0.01 150); }
+::-webkit-scrollbar-thumb { background: oklch(0.25 0.02 150); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: oklch(0.75 0.18 145); }
 
+/* Text gradient */
+.text-gradient-green {
+  background: linear-gradient(135deg, oklch(0.75 0.18 145), oklch(0.85 0.12 150));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Frosted panel */
+.frosted {
+  background: oklch(0.10 0.015 150 / 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid oklch(0.18 0.02 150 / 0.5);
+}

@@ -15,7 +15,6 @@ import BotBroadcasts from "./pages/BotBroadcasts";
 import BotInstagram from "./pages/BotInstagram";
 import BotAnalytics from "./pages/BotAnalytics";
 import BotSettings from "./pages/BotSettings";
-import Pricing from "./pages/Pricing";
 import Billing from "./pages/Billing";
 import Notifications from "./pages/Notifications";
 
@@ -24,7 +23,6 @@ function Router() {
     <Switch>
       {/* Public */}
       <Route path="/" component={Home} />
-      <Route path="/pricing" component={Pricing} />
       {/* Dashboard */}
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/bots" component={MyBots} />

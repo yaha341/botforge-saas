@@ -1,12 +1,11 @@
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Button } from "@/components/ui/button";
 import { useLocation, useParams } from "wouter";
 
 const MODULE_LABELS: Record<string, string> = {
-  moduleShop: "Shop", moduleCourses: "Courses", moduleBroadcasts: "Broadcasts",
-  moduleInstagram: "Instagram", moduleAiAssistant: "AI Assistant", moduleReferral: "Referral",
-  moduleCoupons: "Coupons", moduleMultiCurrency: "Multi-Currency", moduleCrmIntegration: "CRM",
+  moduleShop: "Магазин", moduleCourses: "Курсы", moduleBroadcasts: "Рассылки",
+  moduleInstagram: "Instagram", moduleAiAssistant: "AI Ассистент", moduleReferral: "Рефералы",
+  moduleCoupons: "Купоны", moduleMultiCurrency: "Мультивалюта", moduleCrmIntegration: "CRM",
 };
 
 export default function BotPanel() {
@@ -15,14 +14,14 @@ export default function BotPanel() {
   const [, navigate] = useLocation();
   const { data: bot, isLoading } = trpc.bots.get.useQuery({ botId: Number(botId) }, { enabled: isAuthenticated && !!botId });
 
-  if (isLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="text-foreground font-condensed text-2xl uppercase animate-pulse">Loading...</div></div>;
-  if (!bot) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="text-foreground font-condensed text-2xl uppercase">Bot not found</div></div>;
+  if (isLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="text-foreground font-display text-2xl animate-pulse">Загрузка...</div></div>;
+  if (!bot) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="text-foreground font-display text-2xl">Бот не найден</div></div>;
 
   const webhookUrl = `/api/webhook/${bot.botToken}`;
   const NAV = [
-    { path: "products", label: "Products" }, { path: "orders", label: "Orders" },
-    { path: "broadcasts", label: "Broadcasts" }, { path: "instagram", label: "Instagram" },
-    { path: "analytics", label: "Analytics" }, { path: "settings", label: "Settings" },
+    { path: "products", label: "Товары" }, { path: "orders", label: "Заказы" },
+    { path: "broadcasts", label: "Рассылки" }, { path: "instagram", label: "Instagram" },
+    { path: "analytics", label: "Аналитика" }, { path: "settings", label: "Настройки" },
   ];
 
   return (
@@ -30,31 +29,31 @@ export default function BotPanel() {
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <button onClick={() => navigate("/bots")} className="text-muted-foreground font-condensed uppercase text-xs tracking-widest mb-2 hover:text-foreground transition-colors">← Back to Bots</button>
-            <h1 className="text-5xl font-condensed font-black uppercase text-foreground">{(bot as any).botName}</h1>
-            <div className="text-muted-foreground font-condensed uppercase text-sm mt-1">@{(bot as any).botUsername ?? "—"}</div>
+            <button onClick={() => navigate("/bots")} className="text-muted-foreground text-xs tracking-wider mb-2 hover:text-accent transition-colors">← Назад к ботам</button>
+            <h1 className="font-display font-700 text-4xl text-foreground">{(bot as any).botName}</h1>
+            <div className="text-muted-foreground text-sm mt-1">@{(bot as any).botUsername ?? "—"}</div>
           </div>
-          <span className={`text-sm font-condensed uppercase px-3 py-1 border mt-8 ${(bot as any).status === "active" ? "border-accent text-accent" : "border-muted-foreground text-muted-foreground"}`}>
-            {(bot as any).status}
+          <span className={`text-xs px-3 py-1 rounded-full border mt-8 ${(bot as any).status === "active" ? "border-accent text-accent bg-accent/10" : "border-border text-muted-foreground"}`}>
+            {(bot as any).status === "active" ? "активен" : (bot as any).status === "paused" ? "пауза" : "удалён"}
           </span>
         </div>
-        <span className="red-line mb-8 block" />
+        <span className="green-line mb-8 block" />
 
         {/* Webhook URL */}
-        <div className="border border-border p-4 mb-8 bg-secondary">
-          <div className="text-xs font-condensed uppercase text-muted-foreground mb-1">Webhook URL</div>
+        <div className="card-frog p-4 mb-8">
+          <div className="text-xs text-muted-foreground mb-1">Webhook URL</div>
           <div className="font-mono text-sm text-foreground break-all">{webhookUrl}</div>
         </div>
 
         {/* Active Modules */}
         <div className="mb-8">
-          <h2 className="text-xl font-condensed font-black uppercase text-foreground mb-3">Active Modules</h2>
+          <h2 className="font-display font-600 text-xl text-foreground mb-3">Модули</h2>
           <div className="flex flex-wrap gap-2">
             {Object.entries(MODULE_LABELS).map(([key, label]) =>
               (bot as any)[key] ? (
-                <span key={key} className="text-sm font-condensed uppercase px-3 py-1 border border-accent text-accent">{label}</span>
+                <span key={key} className="text-sm px-3 py-1 border border-accent text-accent rounded">{label}</span>
               ) : (
-                <span key={key} className="text-sm font-condensed uppercase px-3 py-1 border border-border text-muted-foreground line-through">{label}</span>
+                <span key={key} className="text-sm px-3 py-1 border border-border text-muted-foreground line-through rounded">{label}</span>
               )
             )}
           </div>
@@ -64,8 +63,8 @@ export default function BotPanel() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {NAV.map(item => (
             <button key={item.path} onClick={() => navigate(`/bots/${botId}/${item.path}`)}
-              className="btn-brutal p-6 text-left border border-border hover:border-foreground transition-colors">
-              <div className="text-xl font-condensed font-black uppercase">{item.label}</div>
+              className="card-frog p-6 text-left hover:glow-green transition-all">
+              <div className="font-display font-600 text-lg text-foreground">{item.label}</div>
             </button>
           ))}
         </div>
